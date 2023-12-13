@@ -1,0 +1,26 @@
+You are successful in passing stage 2.
+This is your flag zero_one-level-1-000000000222201909091112
+
+<html>
+    <head>
+        <title>
+
+        </title>
+    </head>
+    <body>
+        <script>
+            function checkAccessToken() {
+    const access_token = sessionStorage.getItem('access_token');
+
+    // Check if the access_token is not available
+    if (!access_token) {
+        // Redirect to the login page
+        window.location.href = '/event/zero-login';
+    }
+}
+
+// Call this function to check the access_token when needed
+checkAccessToken();
+        </script>
+    </body>
+</html>

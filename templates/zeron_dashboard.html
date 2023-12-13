@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZERO-One-Home</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            height: 97%;
+            width: 250px;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: rgb(28, 23, 62);
+            text-align: center;
+            color: white;
+            margin-top: 10px;
+            margin-left: 10px;
+            border-radius: 10px;
+            padding: 25px;
+        }
+
+        .sidebar a {
+            padding: 16px;
+            text-decoration: none;
+            font-size: 18px;
+            color: white;
+            display: block;
+            transition: 0.3s;
+        }
+
+        .sidebar a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+
+        /* Main Container Styles */
+        .main-container {
+            margin-left: 280px; /* Adjust this value based on your sidebar width */
+            padding: 20px;
+        }
+
+        .main-container h4 {
+            margin-bottom: 20px;
+        }
+
+
+        /* Level Information Styles */
+        #level-info {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        /* Submit Flag Styles */
+        #flagInput {
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #1a1a1a;
+            border-radius: 5px;
+        }
+
+        #flagInput:focus {
+            outline: none;
+            border-color: #6d45e3;
+        }
+
+        #submitFlagBtn {
+            background-color: #6d45e3;
+            color: #fff;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        #submitFlagBtn:hover {
+            background-color: #4a2ea9;
+        }
+
+                /* Scoreboard Styles */
+        #scoreboard {
+            list-style-type: none;
+            padding: 0;
+            text-align: left;
+        }
+
+        #scoreboard li {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        /* Additional styles for better appearance */
+        #scoreboard {
+            margin-top: 20px;
+        }
+
+        table {
+            border: 2px solid #ddd;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        /* Optional: Add hover effect to table rows */
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h3>Zero-One</h3>
+    <!-- <a href="">Flag submission</a>
+    <a href="">Score Board</a> -->
+    <div id="user-info"></div>
+    <a href="#" onclick="logout()">Logout</a>
+
+    
+</div>
+
+<div class="main-container">
+
+    <div class="row justify-content-center" >
+        <div class="col-8 text-center mt-4">
+            <h4><b>Timer</b></h4>
+            <p id="timer"></p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center" style="background-color: beige;">
+        <div class="col-4 text-center mt-4">
+            <h4><b>Level Information</b></h4>
+            <p id="level-info"></p>
+        </div>
+
+        <div class="col-8 text-center mt-4">
+            <h4>Find the flag and submit here</h4>
+            <input type="text" id="flagInput">
+            <button onclick="submitFlag()" id="submitFlagBtn">Submit</button>
+
+            <p id = "message"></p>
+        </div>   
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-8 text-center mt-4">
+            <h3>Scoreboard</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody id="scoreboard"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ... (your HTML code) ... -->
+
+<script>
+    // Global variable to store user_id and level_id
+    let user_id = 0;
+    let level_id = 0;
+
+    // Function to check if the user is authenticated (has a valid access token)
+        function isAuthenticated() {
+            const access_token = sessionStorage.getItem('access_token');
+            return access_token !== null && access_token !== undefined;
+        }
+
+        // Function to fetch zeron_dashboard content
+        function fetchZeronDashboard() {
+            // Check if the user is authenticated
+            if (isAuthenticated()) {
+                // Get the access token from session storage
+                const access_token = sessionStorage.getItem('access_token');
+
+                // Make a request to /zeron_dashboard with the access_token in the Authorization header
+                fetch('/event/zeron_dashboard', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${access_token}`,
+                    },
+                })
+                .then(response => response.text())  // Assuming the response is HTML
+                .then(htmlContent => {
+                    // Insert the HTML content into the DOM or perform other actions
+                    document.body.innerHTML = htmlContent;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Handle error, show an error message, etc.
+                });
+            } else {
+                // Redirect to the login page if the user is not authenticated
+                window.location.href = '/event/zero-login';
+            }
+        }
+
+
+    // Function to fetch user information and display it
+    function fetchUserInfo() {
+        const access_token = sessionStorage.getItem('access_token');
+
+        // Make a request to fetch user details
+        fetch('/auth/user-details', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${access_token}`,
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Assuming the API response contains user information
+            const userInfo = data;
+
+            // Store user_id as a global variable
+            user_id = userInfo.id;
+
+            // Display user information in the 'user-info' div
+            document.getElementById('user-info').innerHTML = `
+                <p>Username: ${userInfo.username}</p>
+                <p>Email: ${userInfo.email}</p>
+                <!-- Add more user details as needed -->
+            `;
+
+            fetchLevelInfo(user_id);
+        })
+        .catch(error => {
+            console.error('Error fetching user information:', error);
+        });
+    }
+
+    // Function to fetch level information and display it
+    function fetchLevelInfo(user_id) {
+        const access_token = sessionStorage.getItem('access_token');
+
+        // Make a request to fetch level details with the stored user_id
+        fetch(`/event/get-level/${user_id}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${access_token}`,
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Assuming the API response contains level information
+            const levelInfo = data;
+            
+            if (levelInfo.name){
+                // Store level_id as a global variable
+                level_id = levelInfo.id;
+
+                if(levelInfo.name == "Level3"){
+                    document.getElementById('level-info').innerHTML = `
+                    <strong>Level Name:</strong> ${levelInfo.name}<br>
+                    <strong>Endpoint:</strong> 
+                    <a href="https://drive.google.com/file/d/${levelInfo.endpoint}">Click here</a>
+                `;
+                }
+
+                else{
+                    // Display level information in the 'level-info' paragraph
+                document.getElementById('level-info').innerHTML = `
+                    <strong>Level Name:</strong> ${levelInfo.name}<br>
+                    <strong>Endpoint:</strong> 
+                    <a href="/event/${levelInfo.endpoint}">Click here</a>
+                `;
+                }
+
+                
+            }
+
+            else{
+                document.getElementById('level-info').innerHTML = "Congratulation!!!. All flags are submitted";
+            }
+            
+        })
+        .catch(error => {
+            console.error('Error fetching level information:', error);
+        });
+    }
+
+    // Function to submit the flag
+    function submitFlag() {
+        const flagInput = document.getElementById('flagInput').value;
+        const access_token = sessionStorage.getItem('access_token');
+
+        // Make a request to submit the flag
+        fetch('/event/submit-flag', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${access_token}`,
+            },
+            body: JSON.stringify({
+                level: level_id,
+                flag: flagInput,
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Handle the response as needed
+            console.log(data);
+            document.getElementById('message').innerHTML = data.message;
+            window.location.reload();
+        })
+        .catch(error => {
+            console.error('Error submitting flag:', error);
+        });
+    }
+
+    // Function to log out
+    function logout() {
+        const access_token = sessionStorage.getItem('access_token');
+
+        // Make a request to log out
+        fetch('/auth/logout', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${access_token}`,
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Handle the response as needed
+            console.log(data);
+
+            // Clear session storage and redirect to login page
+            sessionStorage.removeItem('access_token');
+            window.location.href = '/event/zero-login';
+        })
+        .catch(error => {
+            console.error('Error logging out:', error);
+        });
+    }
+
+    function fetchScoreboard() {
+        const access_token = sessionStorage.getItem('access_token');
+
+        fetch('/event/scoreboard', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${access_token}`,
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            const scoreboard = data;
+            const scoreboardElement = document.getElementById('scoreboard');
+            scoreboardElement.innerHTML = '';
+
+            scoreboard.forEach(entry => {
+                const row = scoreboardElement.insertRow();
+                const cell1 = row.insertCell(0);
+                const cell2 = row.insertCell(1);
+
+                cell1.textContent = entry.username;
+                cell2.textContent = entry.final_score;
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching scoreboard:', error);
+        });
+    }
+
+    window.onload = function() {
+        fetchScoreboard();
+        fetchZeronDashboard();
+        fetchUserInfo();
+    };
+
+    // Function to update the timer
+    function updateTimer() {
+        const now = new Date();
+        const targetTime = new Date();
+        targetTime.setHours(18, 0, 0); // Set target time to 5:00 PM
+
+        let timeDiff = targetTime - now;
+
+        if (timeDiff < 0) {
+            document.getElementById('timer').innerHTML = "Time's up!";
+            logout();
+            return;
+        }
+
+        const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+        timeDiff -= hours * (1000 * 60 * 60);
+
+        const minutes = Math.floor(timeDiff / (1000 * 60));
+        timeDiff -= minutes * (1000 * 60);
+
+        const seconds = Math.floor(timeDiff / 1000);
+
+        document.getElementById('timer').innerHTML =
+            `${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    // Update the timer every second
+    setInterval(updateTimer, 1000);
+</script>
+
+<!-- ... (your HTML code) ... -->
+
+
+</body>
+</html>

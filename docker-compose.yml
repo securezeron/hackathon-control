@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:latest
+    ports:
+     - "54320:5432"
+    environment:
+      POSTGRES_DB: zero-one-db
+      POSTGRES_USER: zeronuser
+      POSTGRES_PASSWORD: Zeron_1234
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  web:
+    build: .
+    command: python main.py
+    ports:
+      - "8000:8000"
+    container_name: ZeroneBackendContainer
+    volumes:
+      - .:/zeron
+      - static_volume:/zeron/static
+    depends_on:
+      - postgres
+
+volumes:
+  static_volume:
+    driver: local
+  postgres_data:
