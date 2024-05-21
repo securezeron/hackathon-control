@@ -4,7 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 # Import settings from app.core.config
 
-DATABASE_URL = "postgresql://zeronuser:Zeron_1234@postgres:5432/zero-one-db"
+DATABASE_URL = ""
 
 engine = create_engine(DATABASE_URL,pool_timeout=5)
 
