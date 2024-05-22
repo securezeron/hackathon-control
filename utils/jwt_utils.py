@@ -2,7 +2,7 @@ import jwt
 from datetime import datetime, timedelta
 
 
-SECRET_KEY = "NECROMANCER"
+SECRET_KEY = ""
 
 def create_access_token(data, expires_delta: timedelta):
     to_encode = data.copy()
